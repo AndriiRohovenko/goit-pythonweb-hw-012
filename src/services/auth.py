@@ -11,8 +11,10 @@ from src.db.configurations import get_db_session
 from src.conf.config import config
 from src.services.users import UserService
 from src.repository.users import UserRepository
+from src.schemas.auth import UserSchema
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.db.models import User, UserRole
 
 
 class Hash:
@@ -43,7 +45,7 @@ async def create_access_token(data: dict, expires_delta: Optional[int] = None):
 
 async def get_current_user(
     token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db_session)
-):
+) -> UserSchema:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -51,7 +53,6 @@ async def get_current_user(
     )
 
     try:
-        # Decode JWT
         payload = jwt.decode(
             token, config.JWT_SECRET, algorithms=[config.JWT_ALGORITHM]
         )
@@ -62,7 +63,13 @@ async def get_current_user(
         raise credentials_exception
     user_repo = UserRepository(db)
     user_service = UserService(user_repo)
-    user = await user_service.get_user_by_email(username)
-    if user is None:
+    user_db = await user_service.get_user_by_email(username)
+    if user_db is None:
         raise credentials_exception
-    return user
+    return UserSchema.model_validate(user_db)
+
+
+def get_current_admin_user(current_user: User = Depends(get_current_user)):
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Only for admin users")
+    return current_user

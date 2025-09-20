@@ -1,5 +1,6 @@
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy import Date, String, Column, String, func, ForeignKey
+from sqlalchemy import Date, String, Column, String, func, ForeignKey, Enum as SqlEnum
+from enum import Enum
 from datetime import date, datetime
 from typing import Optional
 from sqlalchemy.sql.sqltypes import DateTime
@@ -7,6 +8,11 @@ from sqlalchemy.sql.sqltypes import DateTime
 
 class Base(DeclarativeBase):
     pass
+
+
+class UserRole(str, Enum):
+    USER = "user"
+    ADMIN = "admin"
 
 
 class User(Base):
@@ -21,6 +27,9 @@ class User(Base):
     refresh_token: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     is_verified: Mapped[bool] = mapped_column(default=False)
     avatar: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    role: Mapped[UserRole] = mapped_column(
+        SqlEnum(UserRole, name="userrole"), default=UserRole.USER, nullable=False
+    )
 
 
 class Contacts(Base):

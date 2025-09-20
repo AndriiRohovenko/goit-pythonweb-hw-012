@@ -5,7 +5,7 @@ from src.services.auth import create_access_token, Hash
 from src.services.users import UserService
 from src.repository.users import UserRepository
 from src.db.configurations import get_db_session as get_db
-from src.schemas.auth import UserCreate, Token, User, RefreshTokenRequest
+from src.schemas.auth import UserCreate, Token, UserSchema, RefreshTokenRequest
 from src.conf.config import config
 
 from src.services.email import send_verification_email
@@ -18,7 +18,7 @@ async def user_service(db: AsyncSession = Depends(get_db)):
     return UserService(repo)
 
 
-@router.post("/signup", response_model=User, status_code=status.HTTP_201_CREATED)
+@router.post("/signup", response_model=UserSchema, status_code=status.HTTP_201_CREATED)
 async def register_user(
     body: UserCreate,
     background_tasks: BackgroundTasks,
