@@ -35,6 +35,10 @@ class BaseConfig(BaseSettings):
     CLOUDINARY_API_KEY: int
     CLOUDINARY_API_SECRET: str
 
+    REDIS_HOST: str
+    REDIS_PORT: int
+    REDIS_PASSWORD: str
+
     model_config = ConfigDict(
         env_file=".env", env_file_encoding="utf-8", case_sensitive=True
     )
