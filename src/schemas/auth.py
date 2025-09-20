@@ -28,3 +28,9 @@ class Token(BaseModel):
 
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
+
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    old_password: str = Field(..., min_length=6, max_length=100)
+    new_password: str = Field(..., min_length=6, max_length=100)
