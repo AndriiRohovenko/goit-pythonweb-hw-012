@@ -1,10 +1,15 @@
 from src.repository.users import UserRepository
 from src.db.models import User
-from src.api.exceptions import UserNotFoundError, DuplicateEmailError, ServerError
+from src.api.exceptions import (
+    UserNotFoundError,
+    DuplicateEmailError,
+    ServerError,
+)
 from src.schemas.auth import UserCreate
 
 from libgravatar import Gravatar
 from jose import jwt
+from src.services.utils import Hash
 
 from src.conf.config import config
 
@@ -15,6 +20,7 @@ ALGORITHM = config.JWT_ALGORITHM
 class UserService:
     def __init__(self, repo: UserRepository):
         self.repo = repo
+        self.hash = Hash()
 
     async def get_refresh_token(self, user: User):
         user = await self.repo.get_by_id(user.id)
@@ -87,3 +93,12 @@ class UserService:
 
     async def update_avatar_url(self, email: str, url: str):
         return await self.repo.update_avatar_url(email, url)
+
+    async def reset_password(self, user: User, new_password: str):
+        try:
+            hashed_new_password = self.hash.get_password_hash(new_password)
+            return await self.repo.update(
+                user, {"hashed_password": hashed_new_password}
+            )
+        except Exception as e:
+            raise ServerError(str(e))

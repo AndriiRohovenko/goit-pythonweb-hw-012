@@ -1,11 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.services.auth import create_access_token, Hash
+from src.services.auth import create_access_token
+from src.services.utils import Hash
 from src.services.users import UserService
 from src.repository.users import UserRepository
 from src.db.configurations import get_db_session as get_db
-from src.schemas.auth import UserCreate, Token, UserSchema, RefreshTokenRequest
+from src.schemas.auth import (
+    UserCreate,
+    Token,
+    UserSchema,
+    RefreshTokenRequest,
+    ResetPasswordRequest,
+)
 from src.conf.config import config
 
 from src.services.email import send_verification_email
@@ -117,3 +124,28 @@ async def verify_email(token: str, user_service: UserService = Depends(user_serv
 
     await user_service.verify_email(user)
     return {"detail": "Email verified successfully"}
+
+
+@router.post("/reset-password", status_code=status.HTTP_200_OK)
+async def reset_password(
+    body: ResetPasswordRequest,
+    user_service: UserService = Depends(user_service),
+):
+    user = await user_service.get_user_by_email(body.email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+
+    if not user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email not verified"
+        )
+
+    if not Hash().verify_password(body.old_password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Old password is incorrect"
+        )
+
+    await user_service.reset_password(user, body.new_password)
+    return {"detail": "Password reset successfully"}

@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, UTC
 from typing import Optional
 
 from fastapi import Depends, HTTPException, status
-from passlib.context import CryptContext
+
 from fastapi.security import OAuth2PasswordBearer
 
 from jose import JWTError, jwt
@@ -15,16 +15,6 @@ from src.schemas.auth import UserSchema
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.db.models import User, UserRole
-
-
-class Hash:
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-    def verify_password(self, plain_password, hashed_password):
-        return self.pwd_context.verify(plain_password, hashed_password)
-
-    def get_password_hash(self, password: str):
-        return self.pwd_context.hash(password)
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
