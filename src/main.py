@@ -1,3 +1,8 @@
+"""
+Main application file for the FastAPI project.
+Sets up the FastAPI app, middleware, routes, and exception handlers.
+"""
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from src.api.users import router as users_router
@@ -9,6 +14,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.errors import RateLimitExceeded
 from src.conf.limiter import limiter
+
 
 from src.api.exceptions import (
     UserNotFoundError,
