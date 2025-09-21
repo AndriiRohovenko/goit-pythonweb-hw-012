@@ -9,35 +9,38 @@ load_dotenv(env_file)
 
 
 class BaseConfig(BaseSettings):
-    APP_ENV: str
+    # make default values for all vars based on type
 
-    JWT_SECRET: str
-    JWT_ALGORITHM: str
-    JWT_EXPIRATION_SECONDS: int
+    APP_ENV: str = "dev"
 
-    API_HOST: str
-    API_PORT: int
-    API_URL: str
+    JWT_SECRET: str = "your_jwt_secret"
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRATION_SECONDS: int = 3600
 
-    DB_HOST: str
-    DB_PORT: int
-    DB_USER: str
-    DB_PASSWORD: str
-    DB_NAME: str
+    API_HOST: str = "localhost"
+    API_PORT: int = 8005
+    API_URL: str = "http://localhost:8005"
 
-    SMTP_HOST: str
-    SMTP_PORT: int
-    SMTP_USER: str
-    SMTP_PASSWORD: str
-    SMTP_FROM: str
+    DB_HOST: str = "localhost"
+    DB_PORT: int = 4543
+    DB_USER: str = "postgres"
+    DB_PASSWORD: str = "postgres"
+    DB_NAME: str = "postgres"
 
-    CLOUDINARY_NAME: str
-    CLOUDINARY_API_KEY: int
-    CLOUDINARY_API_SECRET: str
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = "your_email@gmail.com"
+    SMTP_PASSWORD: str = "your_email_password"
+    SMTP_FROM: str = "your_email@gmail.com"
 
-    REDIS_HOST: str
-    REDIS_PORT: int
-    REDIS_PASSWORD: str
+    CLOUDINARY_NAME: str = "your_cloud_name"
+    CLOUDINARY_API_KEY: int = 123456789
+    CLOUDINARY_API_SECRET: str = "your_api_secret"
+
+    REDIS_HOST: str = "localhost"
+    REDIS_PORT: int = 6379
+    # REDIS_DB: int = 0
+    REDIS_PASSWORD: str = "your_redis_password"
 
     model_config = ConfigDict(
         env_file=".env", env_file_encoding="utf-8", case_sensitive=True

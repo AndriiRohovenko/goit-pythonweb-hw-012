@@ -24,7 +24,9 @@ dependencies = [
     "slowapi (>=0.1.9,<0.2.0)",
     "cloudinary (>=1.44.1,<2.0.0)",
     "fastapi-mail (>=1.5.0,<2.0.0)",
-    "redis (>=6.4.0,<7.0.0)",   
+    "redis (>=6.4.0,<7.0.0)",
+    "pytest (>=8.4.2,<9.0.0)",
+    "pytest-asyncio (>=1.2.0,<2.0.0)",   
 ]
 
 [tool.poetry]
@@ -34,6 +36,10 @@ packages = [
     { include = "src" }
 ]
 
+
+[tool.poetry.group.dev.dependencies]
+sphinx = "^8.2.3"
+aiosqlite = "^0.21.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
