@@ -76,12 +76,13 @@ class ContactsRepository:
             user (User): The user for whom the contact is to be created.
             avatar (str, optional): The avatar URL for the contact. Defaults to None.
         Returns:
-            None: Nothing is returned.
+            Contacts: The created contacts.
         """
-        new_contact = Contacts(**body.model_dump(), user_id=user.id, avatar=avatar)
-        self.db.add(new_contact)
+        new_contacts = Contacts(**body.model_dump(), user_id=user.id, avatar=avatar)
+        self.db.add(new_contacts)
         await self.db.commit()
-        await self.db.refresh(new_contact)
+        await self.db.refresh(new_contacts)
+        return new_contacts
 
     async def update(self, existing_contact: Contacts, data: dict):
         """

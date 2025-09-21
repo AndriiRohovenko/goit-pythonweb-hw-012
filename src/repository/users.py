@@ -73,8 +73,9 @@ class UserRepository:
         Args:
             body (UserCreate): The user data.
             avatar (str, optional): The URL of the user's avatar. Defaults to None.
-            Returns:
-             Note: Nothing returned, user is created in the database.
+
+        Returns:
+            User | None: The created user if successful, otherwise None.
         """
 
         hashed_password = hash_password(body.password)
@@ -84,19 +85,22 @@ class UserRepository:
         self.db.add(new_user)
         await self.db.commit()
         await self.db.refresh(new_user)
+        return new_user
 
     async def update(self, existing_user: User, data: dict):
         """Update an existing user.
         Args:
             existing_user (User): The user to update.
             data (dict): The data to update the user with.
-            Returns:
-             Note: Nothing returned, user is updated in the database.
+
+        Returns:
+            User | None: The updated user if successful, otherwise None.
         """
         for field, value in data.items():
             setattr(existing_user, field, value)
         await self.db.commit()
         await self.db.refresh(existing_user)
+        return existing_user
 
     async def delete(self, user: User):
         """Delete a user.
@@ -105,8 +109,13 @@ class UserRepository:
             Returns:
              Note: Nothing returned, user is deleted from the database.
         """
-        await self.db.delete(user)
-        await self.db.commit()
+        try:
+            await self.db.delete(user)
+            await self.db.commit()
+            return True
+        except Exception as e:
+            await self.db.rollback()
+            return False
 
     async def confirm_email(self, user: User):
         """Confirm a user's email.
