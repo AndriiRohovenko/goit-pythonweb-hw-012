@@ -39,6 +39,7 @@ packages = [
 
 [tool.poetry.group.dev.dependencies]
 sphinx = "^8.2.3"
+aiosqlite = "^0.21.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
