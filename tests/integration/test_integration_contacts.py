@@ -11,7 +11,7 @@ from src.schemas.contacts import ContactSchema
 
 @pytest.mark.asyncio
 async def test_create_user_contact(client: TestClient, get_token):
-    # Arrange
+
     token = get_token
     headers = {"Authorization": f"Bearer {token}"}
     data = {
@@ -20,9 +20,9 @@ async def test_create_user_contact(client: TestClient, get_token):
         "phone": "1234567890",
         "birthdate": "1990-01-01",
     }
-    # Act
+
     response = client.post("/api/contacts/", json=data, headers=headers)
-    # Assert
+
     assert response.status_code == 201
     data = response.json()
     ContactSchema.model_validate(data)
@@ -45,14 +45,43 @@ async def test_create_user_contact(client: TestClient, get_token):
 
 @pytest.mark.asyncio
 async def test_get_user_contacts(client: TestClient, get_token):
-    # Arrange
+
     token = get_token
     headers = {"Authorization": f"Bearer {token}"}
-    # Act
+
     response = client.get("/api/contacts/", headers=headers)
-    # Assert
+
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
     for item in data:
         ContactSchema.model_validate(item)
+
+
+@pytest.mark.asyncio
+async def test_get_user_contact_by_id(client: TestClient, get_token):
+
+    token = get_token
+    headers = {"Authorization": f"Bearer {token}"}
+    response = client.get(f"/api/contacts/{1}", headers=headers)
+    assert response.status_code == 200
+    data = response.json()
+    contact = ContactSchema.model_validate(data)
+    assert contact.name == "John Doe"
+    assert contact.email == "john@example.com"
+    assert contact.phone == "1234567890"
+    assert str(contact.birthdate) == "1990-01-01"
+
+
+@pytest.mark.asyncio
+async def test_delete_user_contact(client: TestClient, get_token):
+
+    token = get_token
+    headers = {"Authorization": f"Bearer {token}"}
+    response = client.delete(f"/api/contacts/{1}", headers=headers)
+    assert response.status_code == 204
+
+    async with TestingSessionLocal() as session:
+        result = await session.execute(select(Contacts).where(Contacts.id == 1))
+        db_contact = result.scalars().first()
+        assert not db_contact

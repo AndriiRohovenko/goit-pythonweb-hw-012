@@ -24,6 +24,12 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 
 async def user_service(db: AsyncSession = Depends(get_db_session)):
+    """
+    Dependency to get UserService instance.
+    Args:
+        db (AsyncSession): Database session dependency.
+    Returns: UserService instance.
+    """
     repo = UserRepository(db)
     return UserService(repo)
 
@@ -31,6 +37,13 @@ async def user_service(db: AsyncSession = Depends(get_db_session)):
 @router.get("/me", response_model=UserSchema)
 @limiter.limit("5/minute")
 async def me(request: Request, user: UserSchema = Depends(get_current_user)):
+    """
+    Get the current user's profile information.
+    Args:
+        request (Request): The HTTP request object.
+        user (UserSchema): The currently authenticated user.
+    Returns: The current user's profile information.
+    """
     cache_key = f"user:{user.id}"
     try:
         cached_user = await cache_get(cache_key, redis_client)
@@ -56,7 +69,14 @@ async def update_user_avatar(
     user: User = Depends(get_current_admin_user),
     service: UserService = Depends(user_service),
 ):
-
+    """
+    Update the user's avatar.
+    Args:
+        file (UploadFile): The uploaded avatar file.
+        user (User): The currently authenticated user.
+        service (UserService): User service dependency.
+    Returns: The updated avatar URL.
+    """
     avatar_url = UploadFileService(
         settings.CLOUDINARY_NAME,
         settings.CLOUDINARY_API_KEY,
