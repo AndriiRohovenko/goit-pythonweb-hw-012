@@ -6,7 +6,6 @@ from src.db.models import User
 @pytest.mark.asyncio
 async def test_get_all_users(mock_user_repo):
     result = await mock_user_repo.get_all(limit=10, skip=0)
-    print(f"Retrieved users: {result}")
     assert isinstance(result, list)
     assert len(result) == 1
     assert isinstance(result[0], User)
@@ -15,11 +14,10 @@ async def test_get_all_users(mock_user_repo):
 
 @pytest.mark.asyncio
 async def test_get_user_by_id(mock_user_repo, mock_user):
-    user_id = 1
-    result = await mock_user_repo.get_by_id(user_id)
-    print(f"Retrieved user by ID {user_id}: {result}")
+
+    result = await mock_user_repo.get_by_id(mock_user.id)
     assert isinstance(result, User)
-    assert result.id == user_id
+    assert result.id == mock_user.id
     assert result == mock_user
     assert result.email == "test@example.com"
 
@@ -28,7 +26,6 @@ async def test_get_user_by_id(mock_user_repo, mock_user):
 async def test_get_user_by_email(mock_user_repo, mock_user):
     email = mock_user.email
     result = await mock_user_repo.get_by_email(email)
-    print(f"Retrieved user by email {email}: {result}")
     assert isinstance(result, User)
     assert result == mock_user
     assert result.email == email
@@ -45,7 +42,6 @@ async def test_create_user(mock_user_repo, mock_user_db_session):
     )
 
     result = await mock_user_repo.create(user_create_data)
-    print(f"Created user: {result}")
 
     # Assertions
     assert isinstance(result, User)
@@ -63,7 +59,6 @@ async def test_update_user(mock_user_repo, mock_user_db_session, mock_user):
     update_data = {"name": "updatedname", "surname": "Updated"}
 
     result = await mock_user_repo.update(mock_user, update_data)
-    print(f"Updated user: {result}")
 
     # Assertions
     assert isinstance(result, User)
@@ -102,9 +97,9 @@ async def test_update_avatar_url(mock_user_repo, mock_user_db_session, mock_user
 
 @pytest.mark.asyncio
 async def test_get_by_refresh_token(mock_user_repo, mock_user):
-    token = mock_user.refresh_token
+    user = await mock_user_repo.get_by_email(mock_user.email)
+    token = user.refresh_token
     result = await mock_user_repo.get_user_by_refresh_token(token)
-    print(f"Retrieved user by refresh token {token}: {result}")
     assert isinstance(result, User)
     assert result == mock_user
     assert result.refresh_token == token

@@ -21,6 +21,12 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 async def user_service(db: AsyncSession = Depends(get_db)):
+    """
+    Dependency to get UserService instance.
+    Args:
+        db (AsyncSession): Database session dependency.
+    Returns: UserService instance.
+    """
     repo = UserRepository(db)
     return UserService(repo)
 
@@ -31,6 +37,14 @@ async def register_user(
     background_tasks: BackgroundTasks,
     user_service: UserService = Depends(user_service),
 ):
+    """
+    Register a new user.
+    Args:
+        body (UserCreate): User registration data.
+        background_tasks (BackgroundTasks): FastAPI background tasks for sending email.
+        user_service (UserService): User service dependency.
+        Returns: Created user data.
+    """
     email_user = await user_service.get_user_by_email(body.email)
     if email_user:
         raise HTTPException(
@@ -54,6 +68,13 @@ async def login_user(
     form_data: OAuth2PasswordRequestForm = Depends(),
     user_service: UserService = Depends(user_service),
 ):
+    """
+    User login.
+    Args:
+        form_data (OAuth2PasswordRequestForm): Login form data.
+        user_service (UserService): User service dependency.
+    Returns: Access token and refresh token.
+    """
     user = await user_service.get_user_by_email(form_data.username)
     if not user or not Hash().verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
@@ -85,6 +106,13 @@ async def refresh_token(
     body: RefreshTokenRequest,
     user_service: UserService = Depends(user_service),
 ):
+    """
+    Refresh user access token.
+    Args:
+        body (RefreshTokenRequest): Refresh token request data.
+        user_service (UserService): User service dependency.
+    Returns: New access token and refresh token.
+    """
     if body.refresh_token is None:
         raise HTTPException(status_code=400, detail="Refresh token is required")
     user = await user_service.get_user_by_refresh_token(body.refresh_token)
@@ -111,6 +139,13 @@ async def refresh_token(
 
 @router.get("/verify-email", status_code=status.HTTP_200_OK)
 async def verify_email(token: str, user_service: UserService = Depends(user_service)):
+    """
+    Verify user email.
+    Args:
+        token (str): Email verification token.
+        user_service (UserService): User service dependency.
+    Returns: Success message.
+    """
     user = await user_service.get_user_by_email_verification_token(token)
     if not user:
         raise HTTPException(
@@ -131,6 +166,13 @@ async def reset_password(
     body: ResetPasswordRequest,
     user_service: UserService = Depends(user_service),
 ):
+    """
+    Reset user password.
+    Args:
+        body (ResetPasswordRequest): Password reset request data.
+        user_service (UserService): User service dependency.
+    Returns: Success message.
+    """
     user = await user_service.get_user_by_email(body.email)
     if not user:
         raise HTTPException(

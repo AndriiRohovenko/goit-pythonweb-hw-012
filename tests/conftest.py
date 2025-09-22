@@ -5,26 +5,36 @@ from src.db.models import User, Contacts
 @pytest.fixture(scope="session")
 def mock_user():
     return User(
-        id=1,
         name="Test",
         surname="User",
         email="test@example.com",
         hashed_password="hashedpassword",
-        is_verified=True,
+        is_verified=False,
         role="user",
         avatar=None,
-        refresh_token="12345",
     )
 
 
 @pytest.fixture(scope="session")
-def mock_contact(mock_user):
+def mock_admin_user():
+    return User(
+        name="Admin",
+        surname="User",
+        email="admin@example.com",
+        hashed_password="hashedpassword",
+        is_verified=True,
+        role="admin",
+        avatar=None,
+    )
+
+
+@pytest.fixture(scope="session")
+def mock_contact():
     return Contacts(
-        id=1,
         name="John",
         email="john@example.com",
         phone="1234567890",
-        birthdate=None,
+        birthdate="1990-01-01",
         avatar=None,
-        user_id=mock_user.id,
+        user_id=1,
     )

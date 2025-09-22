@@ -11,6 +11,8 @@ from src.db.models import Base, User
 from src.db.configurations import get_db_session as get_db
 from src.services.auth import create_access_token
 from src.services.utils import Hash
+from src.conf.config import config
+from tests.conftest import mock_user
 
 SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 
@@ -40,7 +42,6 @@ def init_models_wrap(mock_user: User):
                 hashed_password=hash_password,
                 is_verified=mock_user.is_verified,
                 avatar=mock_user.avatar,
-                refresh_token=mock_user.refresh_token,
             )
             session.add(current_user)
             await session.commit()
@@ -66,6 +67,18 @@ def client():
 
 
 @pytest_asyncio.fixture()
-async def get_token(mocked_current_user: User):
-    token = await create_access_token(data={"sub": mocked_current_user.email})
+async def get_token(mock_user: User):
+    token = await create_access_token(
+        data={"sub": mock_user.email},
+        expires_delta=24 * config.JWT_EXPIRATION_SECONDS,
+    )
+    return token
+
+
+@pytest_asyncio.fixture()
+async def get_admin_token(mock_admin_user: User):
+    token = await create_access_token(
+        data={"sub": mock_admin_user.email},
+        expires_delta=24 * config.JWT_EXPIRATION_SECONDS,
+    )
     return token
