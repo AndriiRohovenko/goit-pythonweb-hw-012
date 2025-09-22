@@ -5,6 +5,9 @@ from unittest.mock import Mock
 from src.db.models import User
 from sqlalchemy.future import select
 from tests.integration.conftest import TestingSessionLocal
+from src.conf.config import config
+from jose import jwt
+from src.services.auth import create_access_token
 
 
 @pytest.mark.asyncio
@@ -14,7 +17,7 @@ async def test_register_user(client: TestClient, monkeypatch):
         surname="New",
         email="newuser@example.com",
         password="password",
-        role="user",
+        role="admin",
     )
 
     mock_send_email = Mock()
@@ -72,8 +75,66 @@ async def test_refresh_token(client: TestClient, mock_user):
 
     assert response.status_code == 200
     data = response.json()
-    print(f"Response data: {data}")
     Token.model_validate(data)
     assert "access_token" in data
     assert data["token_type"] == "bearer"
     assert "refresh_token" in data
+
+
+@pytest.mark.asyncio
+async def test_verify_email(client: TestClient, mock_user, get_token):
+    async with TestingSessionLocal() as session:
+        current_user = await session.execute(
+            select(User).where(User.email == mock_user.email)
+        )
+        current_user = current_user.scalar_one_or_none()
+        if current_user:
+            current_user.is_verified = False
+            await session.commit()
+
+        else:
+            pytest.fail("Mock user not found in the database")
+
+    response = client.get(f"api/auth/verify-email?token={get_token}")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["detail"] == "Email verified successfully"
+
+    async with TestingSessionLocal() as session:
+        updated_user = await session.execute(
+            select(User).where(User.email == mock_user.email)
+        )
+        updated_user = updated_user.scalar_one_or_none()
+        assert updated_user.is_verified is True
+
+
+@pytest.mark.asyncio
+async def test_reset_password(client: TestClient, mock_user):
+    async with TestingSessionLocal() as session:
+        current_user = await session.execute(
+            select(User).where(User.email == mock_user.email)
+        )
+        current_user = current_user.scalar_one_or_none()
+        if current_user:
+            current_user.is_verified = True
+            await session.commit()
+
+        data = {
+            "email": mock_user.email,
+            "old_password": mock_user.hashed_password,
+            "new_password": "newpassword123",
+        }
+        response = client.post("api/auth/reset-password", json=data)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["detail"] == "Password reset successfully"
+
+    async with TestingSessionLocal() as session:
+        updated_user = await session.execute(
+            select(User).where(User.email == mock_user.email)
+        )
+        updated_user = updated_user.scalar_one_or_none()
+        assert updated_user is not None
+        assert updated_user.hashed_password != current_user.hashed_password
